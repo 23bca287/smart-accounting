@@ -1,0 +1,124 @@
+<div class="budget-container">
+  <!-- Header -->
+  <header class="budget-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <i class="fas fa-wallet logo-icon"></i>
+        <h1>Budget Management</h1>
+      </div>
+      <div class="header-actions">
+        <button class="back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="budget-main">
+    <div class="budget-content">
+      <!-- Budget List Header -->
+      <div class="section-header">
+        <h2>Your Budgets</h2>
+        <button class="add-budget-btn" (click)="showAddForm()">
+          <i class="fas fa-plus"></i> Add New Budget
+        </button>
+      </div>
+
+      <!-- Budget Form -->
+      <div class="budget-form-container" *ngIf="showForm">
+        <div class="form-card">
+          <h3>{{ editingBudget ? 'Edit Budget' : 'Create New Budget' }}</h3>
+          <form class="budget-form" (ngSubmit)="saveBudget()">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" [(ngModel)]="newBudget.category_id" name="category" required>
+                  <option value="">Select Category</option>
+                  <option *ngFor="let category of categories" [value]="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="limit">Budget Limit (₹)</label>
+                <input type="number" id="limit" [(ngModel)]="newBudget.limit_amount" name="limit"
+                       placeholder="0.00" min="0" step="0.01" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fromDate">From Date</label>
+                <input type="date" id="fromDate" [(ngModel)]="newBudget.from_date" name="fromDate" required>
+              </div>
+              <div class="form-group">
+                <label for="toDate">To Date</label>
+                <input type="date" id="toDate" [(ngModel)]="newBudget.to_date" name="toDate" required>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="save-btn">
+                <i class="fas fa-save"></i> {{ editingBudget ? 'Update' : 'Create' }} Budget
+              </button>
+              <button type="button" class="cancel-btn" (click)="cancelForm()">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Budget List -->
+      <div class="budget-list">
+        <div class="budget-card" *ngFor="let budget of budgets">
+          <div class="budget-card-header">
+            <div class="budget-category">
+              <i class="{{ getCategoryIcon(budget.category_id) }} category-icon"></i>
+              <span class="category-name">{{ budget.category_name || getCategoryName(budget.category_id) }}</span>
+            </div>
+            <div class="budget-actions">
+              <button class="edit-btn" (click)="editBudget(budget)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="delete-btn" (click)="deleteBudget(budget.budget_id)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="budget-details">
+            <div class="budget-amount">
+              <span class="amount-label">Limit:</span>
+              <span class="amount-value">₹{{ budget.limit_amount | number:'1.2-2' }}</span>
+            </div>
+            <div class="budget-period">
+              <span class="period-label">Period:</span>
+              <span class="period-value">{{ budget.from_date | date:'shortDate' }} - {{ budget.to_date | date:'shortDate' }}</span>
+            </div>
+          </div>
+
+          <div class="budget-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getProgressPercentage(budget)"></div>
+            </div>
+            <div class="progress-text">
+              <span>Used: ₹0.00 / ₹{{ budget.limit_amount | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="budgets.length === 0">
+          <i class="fas fa-wallet empty-icon"></i>
+          <h3>No budgets yet</h3>
+          <p>Create your first budget to start tracking your spending limits.</p>
+          <button class="add-budget-btn" (click)="showAddForm()">
+            <i class="fas fa-plus"></i> Create Budget
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

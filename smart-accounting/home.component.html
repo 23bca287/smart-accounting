@@ -1,0 +1,292 @@
+<div class="home-container">
+  <!-- Navigation Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <i class="fas fa-calculator logo-icon"></i>
+        <h1>Smart Accounting</h1>
+      </div>
+      <nav class="nav-menu">
+        <a href="#" class="nav-link active" (click)="setActiveSection('dashboard')">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a routerLink="/transaction" class="nav-link">
+          <i class="fas fa-exchange-alt"></i> Transactions
+        </a>
+        <a href="#" class="nav-link" (click)="setActiveSection('reports')">
+          <i class="fas fa-chart-bar"></i> Reports
+        </a>
+        <a routerLink="/budget" class="nav-link">
+          <i class="fas fa-wallet"></i> Budget
+        </a>
+        <a href="#" class="nav-link" (click)="setActiveSection('settings')">
+          <i class="fas fa-cog"></i> Settings
+        </a>
+      </nav>
+      <div class="user-menu">
+        <div class="user-info">
+          <i class="fas fa-user-circle user-avatar"></i>
+          <span class="username">{{ currentUser }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Dashboard Section -->
+    <div class="dashboard-section" *ngIf="activeSection === 'dashboard'">
+      <div class="welcome-banner">
+        <h2>Welcome back, {{ currentUser }}!</h2>
+        <p>Here's your financial overview for today</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card income">
+          <div class="stat-icon">
+            <i class="fas fa-arrow-up"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Total Income</h3>
+            <p class="stat-value">₹{{ totalIncome | number:'1.2-2' }}</p>
+            <span class="stat-change positive">+12.5%</span>
+          </div>
+        </div>
+
+        <div class="stat-card expenses">
+          <div class="stat-icon">
+            <i class="fas fa-arrow-down"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Total Expenses</h3>
+            <p class="stat-value">₹{{ totalExpenses | number:'1.2-2' }}</p>
+            <span class="stat-change negative">-8.2%</span>
+          </div>
+        </div>
+
+        <div class="stat-card balance">
+          <div class="stat-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Net Balance</h3>
+            <p class="stat-value">₹{{ netBalance | number:'1.2-2' }}</p>
+            <span class="stat-change positive">+4.3%</span>
+          </div>
+        </div>
+
+        <div class="stat-card transactions">
+          <div class="stat-icon">
+            <i class="fas fa-list"></i>
+          </div>
+          <div class="stat-content">
+            <h3>This Month</h3>
+            <p class="stat-value">{{ monthlyTransactions }}</p>
+            <span class="stat-change neutral">Transactions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+          <button class="action-btn primary" (click)="addTransaction()">
+            <i class="fas fa-plus"></i>
+            Add Transaction
+          </button>
+          <button class="action-btn secondary" (click)="generateReport()">
+            <i class="fas fa-file-alt"></i>
+            Generate Report
+          </button>
+          <button class="action-btn secondary" (click)="viewAnalytics()">
+            <i class="fas fa-chart-line"></i>
+            View Analytics
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="recent-transactions">
+        <div class="section-header">
+          <h3>Recent Transactions</h3>
+          <button class="view-all-btn" (click)="setActiveSection('transactions')">View All</button>
+        </div>
+        <div class="transactions-list">
+          <div class="transaction-item" *ngFor="let transaction of recentTransactions">
+            <div class="transaction-icon">
+              <i class="fas" [class]="getTransactionIcon(transaction.type)"></i>
+            </div>
+            <div class="transaction-details">
+              <h4>{{ transaction.description }}</h4>
+              <p>{{ transaction.category }} • {{ transaction.date | date:'short' }}</p>
+            </div>
+            <div class="transaction-amount" [class]="transaction.type">
+              <span [class]="transaction.type === 'income' ? 'positive' : 'negative'">
+                {{ transaction.type === 'income' ? '+' : '-' }}₹{{ transaction.amount | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="transactions-section" *ngIf="activeSection === 'transactions'">
+      <div class="section-header">
+        <h2>All Transactions</h2>
+        <button class="add-transaction-btn" (click)="addTransaction()">
+          <i class="fas fa-plus"></i> Add New
+        </button>
+      </div>
+
+      <div class="transactions-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let transaction of allTransactions">
+              <td>{{ transaction.date | date:'short' }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>{{ transaction.category }}</td>
+              <td>
+                <span class="type-badge" [class]="transaction.type">
+                  {{ transaction.type | titlecase }}
+                </span>
+              </td>
+              <td class="amount-cell" [class]="transaction.type">
+                ₹{{ transaction.amount | number:'1.2-2' }}
+              </td>
+              <td>
+                <button class="action-btn-small edit" (click)="editTransaction(transaction)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-small delete" (click)="deleteTransaction(transaction)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div class="reports-section" *ngIf="activeSection === 'reports'">
+      <div class="section-header">
+        <h2>Financial Reports</h2>
+      </div>
+
+      <div class="reports-grid">
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <h3>Income vs Expenses</h3>
+          <p>Visual breakdown of your financial flow</p>
+          <button class="report-btn" (click)="generateIncomeExpenseReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <h3>Monthly Summary</h3>
+          <p>Comprehensive monthly financial overview</p>
+          <button class="report-btn" (click)="generateMonthlyReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-tags"></i>
+          </div>
+          <h3>Category Analysis</h3>
+          <p>Spending analysis by categories</p>
+          <button class="report-btn" (click)="generateCategoryReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-trending-up"></i>
+          </div>
+          <h3>Trends & Insights</h3>
+          <p>AI-powered financial insights</p>
+          <button class="report-btn" (click)="generateTrendsReport()">
+            Generate Report
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="settings-section" *ngIf="activeSection === 'settings'">
+      <div class="section-header">
+        <h2>Account Settings</h2>
+      </div>
+
+      <div class="settings-grid">
+        <div class="setting-card">
+          <h3>Profile Information</h3>
+          <div class="setting-item">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="userProfile.name" placeholder="Enter your full name">
+          </div>
+          <div class="setting-item">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="userProfile.email" placeholder="Enter your email">
+          </div>
+          <button class="save-btn" (click)="saveProfile()">Save Changes</button>
+        </div>
+
+        <div class="setting-card">
+          <h3>Preferences</h3>
+          <div class="setting-item">
+            <label>Currency</label>
+            <select [(ngModel)]="userPreferences.currency">
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>Theme</label>
+            <select [(ngModel)]="userPreferences.theme">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <button class="save-btn" (click)="savePreferences()">Save Preferences</button>
+        </div>
+
+        <div class="setting-card">
+          <h3>Security</h3>
+          <button class="security-btn" (click)="changePassword()">
+            <i class="fas fa-key"></i> Change Password
+          </button>
+          <button class="security-btn" (click)="enableTwoFactor()">
+            <i class="fas fa-shield-alt"></i> Enable 2FA
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
