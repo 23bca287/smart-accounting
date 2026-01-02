@@ -1,0 +1,274 @@
+<div class="transaction-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <i class="fas fa-exchange-alt logo-icon"></i>
+        <h1>Transaction Management</h1>
+      </div>
+      <div class="header-actions">
+        <button class="back-btn" routerLink="/home">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Overview -->
+  <div class="stats-overview">
+    <div class="stat-card income">
+      <div class="stat-icon">
+        <i class="fas fa-arrow-up"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Total Income</h3>
+        <p class="stat-value">₹{{ getTotalIncome() | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card expenses">
+      <div class="stat-icon">
+        <i class="fas fa-arrow-down"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Total Expenses</h3>
+        <p class="stat-value">₹{{ getTotalExpenses() | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card balance">
+      <div class="stat-icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Net Balance</h3>
+        <p class="stat-value">₹{{ getNetBalance() | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card transactions">
+      <div class="stat-icon">
+        <i class="fas fa-list"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Total Transactions</h3>
+        <p class="stat-value">{{ transactions.length }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Budget Selection -->
+    <div class="budget-selection-section" *ngIf="budgets.length > 0">
+      <div class="budget-selection-card">
+        <h3>Select Budget to View Transactions</h3>
+        <div class="budget-buttons">
+          <button
+            *ngFor="let budget of budgets"
+            class="budget-select-btn"
+            [class.selected]="selectedBudget?.budget_id === budget.budget_id"
+            (click)="selectBudget(budget)">
+            <i [class]="getCategoryIcon(budget.category_id)"></i>
+            {{ budget.category_name }}
+          </button>
+          <button
+            *ngIf="selectedBudget"
+            class="clear-budget-btn"
+            (click)="clearBudgetSelection()">
+            <i class="fas fa-times"></i> Clear Selection
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Budget Overview (when budget is selected) -->
+    <div class="budget-overview" *ngIf="selectedBudget">
+      <div class="budget-overview-card">
+        <div class="budget-header">
+          <div class="budget-info">
+            <i [class]="getCategoryIcon(selectedBudget.category_id)" class="budget-icon"></i>
+            <div>
+              <h3>{{ selectedBudget.category_name }} Budget</h3>
+              <p>₹{{ selectedBudget.limit_amount | number:'1.2-2' }} limit</p>
+            </div>
+          </div>
+          <div class="budget-amounts">
+            <div class="amount-item">
+              <span class="label">Spent:</span>
+              <span class="value spent">₹{{ getBudgetSpent(selectedBudget) | number:'1.2-2' }}</span>
+            </div>
+            <div class="amount-item">
+              <span class="label">Remaining:</span>
+              <span class="value remaining" [class.over-budget]="getBudgetRemaining(selectedBudget) < 0">
+                ₹{{ getBudgetRemaining(selectedBudget) | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-progress">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [class.over-budget]="getBudgetProgress(selectedBudget) > 100"
+              [style.width.%]="getBudgetProgress(selectedBudget) > 100 ? 100 : getBudgetProgress(selectedBudget)">
+            </div>
+          </div>
+          <div class="progress-text">
+            <span>{{ getBudgetProgress(selectedBudget) | number:'1.0-1' }}% used</span>
+            <span *ngIf="getBudgetProgress(selectedBudget) > 100" class="over-budget-text">
+              (Over budget by ₹{{ (getBudgetSpent(selectedBudget) - selectedBudget.limit_amount) | number:'1.2-2' }})
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Transaction Form -->
+    <div class="form-section">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>{{ isEditing ? 'Edit Transaction' : 'Add New Transaction' }}</h2>
+          <i class="fas fa-plus-circle form-icon"></i>
+        </div>
+
+        <form class="transaction-form" (ngSubmit)="isEditing ? updateTransaction() : addTransaction()">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="description">Description</label>
+              <input
+                type="text"
+                id="description"
+                [(ngModel)]="newTransaction.description"
+                name="description"
+                placeholder="Enter transaction description"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="amount">Amount (₹)</label>
+              <input
+                type="number"
+                id="amount"
+                [(ngModel)]="newTransaction.amount"
+                name="amount"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category</label>
+              <select
+                id="category"
+                [(ngModel)]="newTransaction.category"
+                name="category"
+                required>
+                <option value="">Select Category</option>
+                <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="type">Type</label>
+              <select
+                id="type"
+                [(ngModel)]="newTransaction.type"
+                name="type"
+                required>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="date">Date</label>
+              <input
+                type="date"
+                id="date"
+                [(ngModel)]="newTransaction.date"
+                name="date"
+                required>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-btn" [disabled]="!newTransaction.description || !newTransaction.category || newTransaction.amount <= 0">
+              <i class="fas" [class]="isEditing ? 'fa-save' : 'fa-plus'"></i>
+              {{ isEditing ? 'Update Transaction' : 'Add Transaction' }}
+            </button>
+            <button type="button" *ngIf="isEditing" class="cancel-btn" (click)="cancelEdit()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="transactions-section">
+      <div class="section-header">
+        <h2>{{ selectedBudget ? selectedBudget.category_name + ' Transactions' : 'All Transactions' }}</h2>
+        <div class="section-actions">
+          <span class="transaction-count">{{ (selectedBudget ? filteredTransactions : transactions).length }} transactions</span>
+        </div>
+      </div>
+
+      <div class="transactions-table-container">
+        <table class="transactions-table" *ngIf="(selectedBudget ? filteredTransactions : transactions).length > 0; else noTransactions">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let transaction of (selectedBudget ? filteredTransactions : transactions)" class="transaction-row">
+              <td>{{ transaction.date | date:'short' }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>
+                <span class="category-badge">{{ transaction.category }}</span>
+              </td>
+              <td>
+                <span class="type-badge" [class]="transaction.type">
+                  {{ transaction.type | titlecase }}
+                </span>
+              </td>
+              <td class="amount-cell" [class]="transaction.type">
+                ₹{{ transaction.amount | number:'1.2-2' }}
+              </td>
+              <td class="actions-cell">
+                <button class="action-btn edit-btn" (click)="editTransaction(transaction)" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteTransaction(transaction.id)" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #noTransactions>
+          <div class="no-transactions">
+            <i class="fas fa-inbox no-data-icon"></i>
+            <h3 *ngIf="!selectedBudget">No transactions yet</h3>
+            <h3 *ngIf="selectedBudget">No {{ selectedBudget.category_name }} transactions</h3>
+            <p *ngIf="!selectedBudget">Add your first transaction using the form above.</p>
+            <p *ngIf="selectedBudget">No expense transactions found for the {{ selectedBudget.category_name }} category.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </main>
+</div>
