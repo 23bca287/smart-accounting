@@ -1,0 +1,115 @@
+<div class="content-body">
+  <div class="page-header">
+    <div class="header-title">
+      <h2>System Reports</h2>
+      <p class="subtitle">View and manage system generated logs and user reports</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary">
+        <i class="fas fa-download"></i> Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon icon-blue">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Total Reports</h3>
+        <div class="stat-value">{{reports.length}}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-yellow">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Pending</h3>
+        <div class="stat-value">{{reports.filter(r => r.status === 'Pending').length}}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-green">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3>Resolved</h3>
+        <div class="stat-value">{{reports.filter(r => r.status === 'Resolved').length}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Report List</h3>
+      <div class="filter-controls">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search ID, User, or Message..." [(ngModel)]="searchTerm" (input)="filterReports()">
+        </div>
+        <select class="status-select" [(ngModel)]="statusFilter" (change)="filterReports()">
+          <option value="All">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Dismissed">Dismissed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>User ID</th>
+            <th>Message</th>
+            <th>Created At</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of filteredReports">
+            <td><span class="id-badge">#{{report.report_id}}</span></td>
+            <td>
+              <div class="user-info-cell">
+                <div class="avatar-sm">{{report.user_id}}</div>
+                <span>User {{report.user_id}}</span>
+              </div>
+            </td>
+            <td class="message-cell">
+              <p [title]="report.message">{{report.message}}</p>
+            </td>
+            <td>
+              <div class="date-cell">
+                <span class="date">{{report.created_at | date:'mediumDate'}}</span>
+                <span class="time">{{report.created_at | date:'shortTime'}}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(report.status)">
+                {{report.status}}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon view" title="View Details"><i class="fas fa-eye"></i></button>
+                <button class="btn-icon delete" title="Delete" (click)="deleteReport(report.report_id)"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredReports.length === 0">
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No reports found matching your criteria.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

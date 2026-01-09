@@ -1,0 +1,575 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-header">
+      <i class="fas fa-chart-pie logo-icon"></i>
+      <h1>Smart Admin</h1>
+    </div>
+
+    <nav class="side-nav">
+      <div class="nav-label">Overview</div>
+      <ul>
+        <li>
+          <a [class.active]="activeSection === 'dashboard'" (click)="setActiveSection('dashboard')">
+            <i class="fas fa-home"></i> <span>Dashboard</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-label">Management</div>
+      <ul>
+        <li>
+          <a [class.active]="activeSection === 'users'" (click)="setActiveSection('users')">
+            <i class="fas fa-users"></i> <span>Users</span>
+          </a>
+        </li>
+        <li>
+          <a [class.active]="activeSection === 'transactions'" (click)="setActiveSection('transactions')">
+            <i class="fas fa-exchange-alt"></i> <span>Transactions</span>
+          </a>
+        </li>
+        <li>
+          <a [class.active]="activeSection === 'categories'" (click)="setActiveSection('categories')">
+            <i class="fas fa-layer-group"></i> <span>Categories</span>
+          </a>
+        </li>
+        <li>
+          <a [class.active]="activeSection === 'budgets'" (click)="setActiveSection('budgets')">
+            <i class="fas fa-wallet"></i> <span>Budgets</span>
+          </a>
+        </li>
+        <li>
+          <a [class.active]="activeSection === 'reports'" (click)="setActiveSection('reports')">
+            <i class="fas fa-chart-bar"></i> <span>Reports</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-label">System</div>
+      <ul>
+        <li>
+          <a [class.active]="activeSection === 'settings'" (click)="setActiveSection('settings')">
+            <i class="fas fa-cog"></i> <span>Settings</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-title">
+        <h2>{{ activeSection | titlecase }}</h2>
+        <p class="subtitle">Overview & Management</p>
+      </div>
+      <div class="user-profile">
+        <div class="user-info">
+          <span class="name">{{ currentAdmin }}</span>
+          <span class="role">Administrator</span>
+        </div>
+        <div class="avatar">
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-body">
+    <!-- Dashboard Section -->
+    <section class="dashboard-view" *ngIf="activeSection === 'dashboard'">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card users">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Total Users</h3>
+            <div class="stat-value">{{ totalUsers }}</div>
+            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 5.2%</span>
+          </div>
+        </div>
+
+        <div class="stat-card transactions">
+          <div class="stat-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Total Transactions</h3>
+            <div class="stat-value">{{ totalTransactions }}</div>
+            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 12.8%</span>
+          </div>
+        </div>
+
+        <div class="stat-card categories">
+          <div class="stat-icon">
+            <i class="fas fa-tags"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Categories</h3>
+            <div class="stat-value">{{ totalCategories }}</div>
+            <span class="stat-trend neutral">Active</span>
+          </div>
+        </div>
+
+        <div class="stat-card budgets">
+          <div class="stat-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Active Budgets</h3>
+            <div class="stat-value">{{ totalBudgets }}</div>
+            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 3.1%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>User Growth</h3>
+          <div class="bar-chart">
+            <div class="bar-item" *ngFor="let data of userChartData" [style.height.%]="(data.value / maxUserChartValue) * 100" [title]="data.value + ' users'">
+              <div class="bar-label">{{ data.month }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Transaction Flow</h3>
+          <div class="bar-chart transaction-flow">
+             <div class="bar-item income-bar" [style.height.%]="(transactionChartData[0].value / maxTransactionChartValue) * 100" [title]="'₹' + transactionChartData[0].value">
+               <div class="bar-label">{{ transactionChartData[0].type }}</div>
+             </div>
+             <div class="bar-item expense-bar" [style.height.%]="(transactionChartData[1].value / maxTransactionChartValue) * 100" [title]="'₹' + transactionChartData[1].value">
+               <div class="bar-label">{{ transactionChartData[1].type }}</div>
+             </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Category Distribution</h3>
+          <div class="doughnut-chart-container">
+            <div class="doughnut-chart"></div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item" *ngFor="let cat of categoryChartData">
+              <div class="legend-color" [style.background]="cat.color"></div>
+              <span>{{ cat.name }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Budget Status</h3>
+          <div class="budget-bars">
+            <div class="budget-item" *ngFor="let budget of budgets">
+              <div class="budget-labels">
+                <span>{{ budget.user }} ({{ budget.category }})</span>
+                <span>₹{{ budget.spent | number:'1.0-0' }} / ₹{{ budget.limit | number:'1.0-0' }}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" [style.width.%]="(budget.spent / budget.limit) * 100" [class.over-budget]="budget.spent > budget.limit"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-split">
+        <!-- Recent Activity -->
+        <div class="card recent-activity">
+          <div class="card-header">
+            <h3>Recent Activity</h3>
+            <button class="btn-link" (click)="setActiveSection('transactions')">View All</button>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item" *ngFor="let transaction of allTransactions.slice(0, 5)">
+              <div class="activity-icon" [class]="transaction.type">
+                <i class="fas" [class.fa-arrow-down]="transaction.type === 'income'" [class.fa-arrow-up]="transaction.type === 'expense'"></i>
+              </div>
+              <div class="activity-details">
+                <h4>{{ transaction.description }}</h4>
+                <p>{{ transaction.user }} • {{ transaction.date | date:'shortDate' }}</p>
+              </div>
+              <div class="activity-amount" [class]="transaction.type">
+                {{ transaction.type === 'income' ? '+' : '-' }}₹{{ transaction.amount | number:'1.2-2' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card quick-actions">
+          <div class="card-header">
+            <h3>Quick Actions</h3>
+          </div>
+          <div class="action-buttons-grid">
+            <button class="action-card-btn" (click)="setActiveSection('users')">
+              <i class="fas fa-user-plus"></i>
+              <span>Add User</span>
+            </button>
+            <button class="action-card-btn" (click)="generateSystemReport()">
+              <i class="fas fa-file-download"></i>
+              <span>Report</span>
+            </button>
+            <button class="action-card-btn" (click)="setActiveSection('categories')">
+              <i class="fas fa-folder-plus"></i>
+              <span>Category</span>
+            </button>
+            <button class="action-card-btn" (click)="setActiveSection('settings')">
+              <i class="fas fa-sliders-h"></i>
+              <span>Config</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Users Section -->
+    <section class="section-view" *ngIf="activeSection === 'users'">
+      <div class="card">
+        <div class="card-header-actions">
+          <h3>All Users</h3>
+          <button class="btn-primary" (click)="openUserModal()">
+          <i class="fas fa-user-plus"></i> Add New User
+        </button>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Join Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>#{{ user.id }}</td>
+                <td><div class="user-cell"><div class="avatar-sm">{{ user.name.charAt(0) }}</div> {{ user.name }}</div></td>
+                <td>{{ user.email }}</td>
+                <td><span class="badge" [class]="user.status">{{ user.status | titlecase }}</span></td>
+                <td>{{ user.joinDate | date:'mediumDate' }}</td>
+                <td class="actions-cell">
+                  <button class="btn-icon view" (click)="viewUserDetails(user)"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon edit" (click)="openUserModal(user)"><i class="fas fa-pen"></i></button>
+                  <button class="btn-icon delete" (click)="deleteUser(user)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transactions Section -->
+    <section class="section-view" *ngIf="activeSection === 'transactions'">
+      <div class="card">
+        <div class="card-header-actions">
+          <h3>Transaction Records</h3>
+          <button class="btn-primary" (click)="openTransactionModal()">
+            <i class="fas fa-plus"></i> Add Transaction
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let transaction of allTransactions">
+                <td>#{{ transaction.id }}</td>
+                <td>{{ transaction.user }}</td>
+                <td>{{ transaction.description }}</td>
+                <td><span class="badge-category">{{ transaction.category }}</span></td>
+                <td><span class="badge" [class]="transaction.type">{{ transaction.type | titlecase }}</span></td>
+                <td class="amount-cell" [class]="transaction.type">₹{{ transaction.amount | number:'1.2-2' }}</td>
+                <td>{{ transaction.date | date:'mediumDate' }}</td>
+                <td class="actions-cell">
+                  <button class="btn-icon view" (click)="viewTransactionDetails(transaction)"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon edit" (click)="openTransactionModal(transaction)"><i class="fas fa-pen"></i></button>
+                  <button class="btn-icon delete" (click)="deleteTransaction(transaction)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="section-view" *ngIf="activeSection === 'categories'">
+      <div class="section-controls">
+        <button class="btn-primary" (click)="openCategoryModal()">
+          <i class="fas fa-plus"></i> Add Category
+        </button>
+      </div>
+      <div class="categories-grid">
+        <div class="category-card" *ngFor="let category of categories">
+          <div class="category-header">
+            <div class="cat-icon"><i class="fas fa-tag"></i></div>
+            <h3>{{ category.name }}</h3>
+            <div class="category-actions">
+              <button class="btn-icon edit" (click)="openCategoryModal(category)"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon delete" (click)="deleteCategory(category)"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <p class="cat-desc">{{ category.description }}</p>
+          <div class="category-stats">
+            <span><i class="fas fa-users"></i> {{ category.userCount }} Users</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Budgets Section -->
+    <section class="section-view" *ngIf="activeSection === 'budgets'">
+      <div class="card">
+        <div class="card-header-actions">
+          <h3>Budget Overview</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Category</th>
+                <th>Limit</th>
+                <th>Spent</th>
+                <th>Remaining</th>
+                <th>Period</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let budget of budgets">
+                <td>{{ budget.user }}</td>
+                <td><span class="badge-category">{{ budget.category }}</span></td>
+                <td>₹{{ budget.limit | number:'1.0-0' }}</td>
+                <td>₹{{ budget.spent | number:'1.0-0' }}</td>
+                <td>
+                  <span class="badge" [class]="budget.spent > budget.limit ? 'expense' : 'income'">
+                    ₹{{ (budget.limit - budget.spent) | number:'1.0-0' }}
+                  </span>
+                </td>
+                <td>{{ budget.period }}</td>
+                <td class="actions-cell">
+                  <button class="btn-icon view" (click)="viewBudgetDetails(budget)"><i class="fas fa-eye"></i></button>
+                  <button class="btn-icon edit" (click)="editBudget(budget)"><i class="fas fa-pen"></i></button>
+                  <button class="btn-icon delete" (click)="deleteBudget(budget)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reports Section -->
+    <section class="section-view" *ngIf="activeSection === 'reports'">
+      <div class="reports-grid">
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>User Analytics</h3>
+          <p>Detailed user registration and activity reports</p>
+          <button class="btn-outline" (click)="generateUserReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <h3>Transaction Reports</h3>
+          <p>Comprehensive transaction analysis and trends</p>
+          <button class="btn-outline" (click)="generateTransactionReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>System Performance</h3>
+          <p>Server performance and usage statistics</p>
+          <button class="btn-outline" (click)="generateSystemReport()">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="report-card">
+          <div class="report-icon">
+            <i class="fas fa-database"></i>
+          </div>
+          <h3>Data Export</h3>
+          <p>Export system data for backup or analysis</p>
+          <button class="btn-outline">
+            Export Data
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Section -->
+    <section class="section-view" *ngIf="activeSection === 'settings'">
+      <div class="settings-grid">
+        <div class="card setting-card">
+          <div class="card-header"><h3>General Settings</h3></div>
+          <div class="setting-item">
+            <label>System Name</label>
+            <input type="text" value="Smart Accounting" readonly>
+          </div>
+          <div class="setting-item">
+            <label>Default Currency</label>
+            <select>
+              <option value="INR" selected>INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </div>
+          <button class="btn-primary">Save Changes</button>
+        </div>
+
+        <div class="card setting-card">
+          <h3>Security Settings</h3>
+          <div class="setting-item">
+            <label>Session Timeout (minutes)</label>
+            <input type="number" value="30">
+          </div>
+          <div class="setting-item">
+            <label>Password Policy</label>
+            <select>
+              <option value="strong" selected>Strong</option>
+              <option value="medium">Medium</option>
+              <option value="weak">Weak</option>
+            </select>
+          </div>
+          <button class="btn-primary">Update Security</button>
+        </div>
+
+        <div class="card setting-card">
+          <h3>Maintenance</h3>
+          <button class="btn-outline full-width">
+            <i class="fas fa-database"></i> Backup Database
+          </button>
+          <button class="btn-outline full-width">
+            <i class="fas fa-broom"></i> Clear Cache
+          </button>
+          <button class="btn-outline full-width">
+            <i class="fas fa-server"></i> System Health Check
+          </button>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- MODAL DIALOG -->
+  <div class="modal-overlay" *ngIf="isModalOpen">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>{{ modalTitle }}</h3>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- User Form -->
+        <form *ngIf="modalType === 'user'">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="currentItem.name" name="name" placeholder="Enter name" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="currentItem.email" name="email" placeholder="Enter email" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="currentItem.status" name="status" [disabled]="isViewMode">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </form>
+
+        <!-- Transaction Form -->
+        <form *ngIf="modalType === 'transaction'">
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" [(ngModel)]="currentItem.description" name="desc" placeholder="e.g., Office Supplies" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" [(ngModel)]="currentItem.amount" name="amount" placeholder="0.00" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select [(ngModel)]="currentItem.type" name="type" [disabled]="isViewMode">
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+        </form>
+
+        <!-- Category Form -->
+        <form *ngIf="modalType === 'category'">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" [(ngModel)]="currentItem.name" name="cname" placeholder="e.g., Marketing" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" [(ngModel)]="currentItem.description" name="cdesc" placeholder="Category description" [disabled]="isViewMode">
+          </div>
+        </form>
+
+        <!-- Budget Form -->
+        <form *ngIf="modalType === 'budget'">
+          <div class="form-group">
+            <label>User</label>
+            <input type="text" [(ngModel)]="currentItem.user" name="buser" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" [(ngModel)]="currentItem.category" name="bcat" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Limit</label>
+            <input type="number" [(ngModel)]="currentItem.limit" name="blimit" [disabled]="isViewMode">
+          </div>
+          <div class="form-group">
+            <label>Spent</label>
+            <input type="number" [(ngModel)]="currentItem.spent" name="bspent" [disabled]="isViewMode">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" (click)="closeModal()">{{ isViewMode ? 'Close' : 'Cancel' }}</button>
+        <button class="btn-primary" (click)="saveData()" *ngIf="!isViewMode">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
